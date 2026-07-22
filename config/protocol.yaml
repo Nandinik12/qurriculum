@@ -1,0 +1,39 @@
+# FROZEN AT WEEK 0 — DO NOT EDIT AFTER FIRST TRAINING RUN.
+# The only experimental variable in this project is the solver.
+
+student:
+  base_model: Qwen/Qwen3-1.7B-Base
+  seed: 42
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  load_in_4bit: true
+
+training:
+  epochs: 2
+  lr: 2.0e-4
+  batch_size: 8
+  grad_accum: 2
+  warmup_ratio: 0.03
+  scheduler: linear
+
+batch:
+  token_budget: 100000        # B in the QUBO
+  pool_size: 400              # candidate pool per week
+
+qubo:
+  lambda_diversity: null      # λ₁ — set by week-0 sweep (scripts/lambda_sweep.py), then freeze
+  lambda_budget: null         # λ₂ — set by week-0 sweep, then freeze
+  sim_threshold: 0.7          # sparsify pairwise terms below this cosine sim
+  sa_restarts: 20             # classical solver: best of N
+  qpu_num_reads: 1000         # quantum solver: anneals per week
+
+eval:
+  static_set: eval/static/static_eval.jsonl   # 300 items, never trained on, never changed
+  skills: [math, reasoning, instruction_following, recall, extraction, code]
+  judge_model: claude-sonnet-5                # blind to student identity
+
+solvers: [greedy, classical, quantum]

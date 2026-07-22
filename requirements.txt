@@ -1,0 +1,8 @@
+numpy
+pyyaml
+# weekly loop
+dwave-ocean-sdk    # quantum solver (needs DWAVE_API_TOKEN)
+dwave-neal         # classical SA backend
+sentence-transformers  # candidate embeddings
+anthropic          # teacher
+# training happens in Colab: pip install unsloth trl datasets
