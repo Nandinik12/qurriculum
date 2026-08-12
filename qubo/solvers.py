@@ -142,7 +142,41 @@ def solve_classical(
 
 
 # --------------------------------------------------------------------------- #
-# 3. Quantum: D-Wave Advantage via Leap
+# 3. Simulated quantum annealing (no account needed)
+# --------------------------------------------------------------------------- #
+
+def solve_sqa(
+    candidates: list[dict],
+    Q: dict[tuple[int, int], float],
+    num_reads: int = 20,
+    seed: int = 42,
+) -> SolverResult:
+    """Path-integral Monte Carlo simulation of quantum annealing (openjij).
+
+    The standard literature proxy for a quantum annealer: classically simulates
+    the transverse-field tunneling dynamics that D-Wave hardware implements
+    physically. Runs the 'quantum-dynamics' arm until real QPU access lands —
+    then hardware joins as its own lineage and SQA-vs-QPU becomes a bonus
+    comparison.
+    """
+    from openjij import SQASampler
+
+    t0 = time.perf_counter()
+    n = len(candidates)
+    ss = SQASampler().sample_qubo(Q, num_reads=num_reads, seed=seed)
+    best = ss.first
+    x = np.array([int(best.sample[i]) for i in range(n)], dtype=int)
+    return SolverResult(
+        solver="sqa",
+        x=x.tolist(),
+        objective=float(best.energy),
+        wall_time_s=time.perf_counter() - t0,
+        meta={"backend": "openjij-SQA", "num_reads": num_reads},
+    )
+
+
+# --------------------------------------------------------------------------- #
+# 4. Quantum: D-Wave Advantage via Leap
 # --------------------------------------------------------------------------- #
 
 def solve_quantum(

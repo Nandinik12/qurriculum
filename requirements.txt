@@ -6,3 +6,4 @@ dwave-neal         # classical SA backend
 sentence-transformers  # candidate embeddings
 anthropic          # teacher
 # training happens in Colab: pip install unsloth trl datasets
+openjij            # SQA — quantum-dynamics arm until D-Wave access lands
