@@ -36,4 +36,4 @@ eval:
   skills: [math, reasoning, instruction_following, recall, extraction, code]
   judge_model: claude-sonnet-5                # blind to student identity
 
-solvers: [greedy, classical, sqa]   # sqa -> quantum (D-Wave) when Leap access lands
+solvers: [random, greedy, classical]   # season 2: sqa, quantum (D-Wave)

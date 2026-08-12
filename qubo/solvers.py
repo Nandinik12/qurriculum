@@ -31,7 +31,43 @@ class SolverResult:
 
 
 # --------------------------------------------------------------------------- #
-# 1. Greedy baseline
+# 0. Random baseline (no teacher signal — the control arm)
+# --------------------------------------------------------------------------- #
+
+def solve_random(
+    candidates: list[dict],
+    Q: dict[tuple[int, int], float],
+    budget: int,
+    seed: int | None = None,
+) -> SolverResult:
+    """Uniform random selection until the token budget is filled.
+
+    Ignores the weakness vector entirely: this arm answers 'does closed-loop
+    curation matter at all?'. Seed with the week number for reproducibility.
+    """
+    t0 = time.perf_counter()
+    rng = np.random.default_rng(seed)
+    t = np.array([c["tokens"] for c in candidates], dtype=float)
+    order = rng.permutation(len(candidates))
+    picked, used = [], 0
+    for i in order:
+        if used + t[i] <= budget:
+            picked.append(int(i))
+            used += t[i]
+
+    x = np.zeros(len(candidates), dtype=int)
+    x[picked] = 1
+    return SolverResult(
+        solver="random",
+        x=x.tolist(),
+        objective=objective(Q, x),
+        wall_time_s=time.perf_counter() - t0,
+        meta={"seed": seed},
+    )
+
+
+# --------------------------------------------------------------------------- #
+# 1. Greedy heuristic (teacher signal, no optimization)
 # --------------------------------------------------------------------------- #
 
 def solve_greedy(

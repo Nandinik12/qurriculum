@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "qubo"))
 import numpy as np
 
 from build_qubo import build_qubo, solution_stats
-from solvers import solve_greedy, solve_classical, solve_sqa, selection_diff
+from solvers import solve_random, solve_greedy, solve_classical, selection_diff
 
 SKILLS = ["math", "reasoning", "instruction_following", "recall", "extraction", "code"]
 
@@ -50,15 +50,11 @@ def main():
     Q = build_qubo(pool, weakness, budget, lam1, lam2)
     print(f"Q: {len(pool)} vars, {len(Q)} terms")
 
+    rnd = solve_random(pool, Q, budget, seed=0)
     g = solve_greedy(pool, Q, weakness, budget)
     c = solve_classical(pool, Q, restarts=10)
-    try:
-        q = solve_sqa(pool, Q, num_reads=10)
-    except ImportError:
-        q = None
-        print("openjij not installed — skipping SQA arm")
 
-    for r in (g, c) + ((q,) if q else ()):
+    for r in (rnd, g, c):
         stats = solution_stats(pool, np.array(r.x), budget)
         print(
             f"{r.solver:9s} obj={r.objective:12.2f}  "
@@ -66,11 +62,11 @@ def main():
             f"({stats['budget_utilization']:.0%} of budget)  {r.wall_time_s:.2f}s"
         )
 
-    d = selection_diff(g, c, pool)
-    print(f"greedy/classical diff: jaccard={d['jaccard']}, overlap={d['overlap']}")
-    if q:
-        d2 = selection_diff(c, q, pool)
-        print(f"classical/sqa diff:   jaccard={d2['jaccard']}, overlap={d2['overlap']}")
+    for a, b in ((rnd, g), (g, c)):
+        d = selection_diff(a, b, pool)
+        print(f"{d['pair']:24s} jaccard={d['jaccard']}, overlap={d['overlap']}")
+
+    assert rnd.objective > c.objective, "optimized arm should beat random on objective"
 
     assert c.objective <= g.objective + 1e-9, "SA should never lose to greedy on objective"
     stats_c = solution_stats(pool, np.array(c.x), budget)
