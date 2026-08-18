@@ -33,6 +33,10 @@ qubo:
 
 eval:
   static_set: eval/static/static_eval.jsonl   # 300 items, never trained on, never changed
+  # FROZEN 2026-08-12. Regenerable from scripts/build_static_eval.py (seed 42).
+  # Any change to the file or this hash invalidates the experiment.
+  static_set_sha256: 3fe500d27a0095be971a3463bd72191dd00731ce4f6916703323a75cdbbe0a64
+  static_checks: [exact, numeric]             # no judge in the public curves
   skills: [math, reasoning, instruction_following, recall, extraction, code]
   judge_model: claude-sonnet-5                # blind to student identity
 
